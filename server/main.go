@@ -3,21 +3,20 @@ package main
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/gordonklaus/portaudio"
 	"log"
 	"net"
-	"os"
-	"os/exec"
+
+	"github.com/gordonklaus/portaudio"
 )
 
-const sampleRate = 88200
-const seconds = 0.06
+const sampleRate = 11025
+const seconds = 0.04
 
 func main() {
 	portaudio.Initialize()
 	defer portaudio.Terminate()
 
-	buffer := make([]float32, sampleRate * seconds)
+	buffer := make([]float32, sampleRate*seconds)
 	stream, err := portaudio.OpenDefaultStream(1, 0, sampleRate, len(buffer), func(in []float32) {
 		for i := range buffer {
 			buffer[i] = in[i]
@@ -33,7 +32,7 @@ func main() {
 	}
 	defer listen.Close()
 
-	clearTerminal()
+	// clearTerminal()
 	fmt.Println("Running Server TCP on port :8080")
 
 	for {
@@ -51,11 +50,13 @@ func handle(con net.Conn, buffer []float32) {
 	binary.Write(con, binary.BigEndian, &buffer)
 }
 
+/*
 func clearTerminal() {
 	cmd := exec.Command("clear")
 	cmd.Stdout = os.Stdout
 	cmd.Run()
 }
+*/
 
 func must(err error) {
 	if err != nil {
