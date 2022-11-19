@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"flag"
 	"fmt"
 	"log"
 	"net"
@@ -13,6 +14,11 @@ const sampleRate = 11025
 const seconds = 0.04
 
 func main() {
+
+	address := flag.String("address", ":8080", "the address to bind to")
+
+	flag.Parse()
+
 	portaudio.Initialize()
 	defer portaudio.Terminate()
 
@@ -26,14 +32,14 @@ func main() {
 	must(stream.Start())
 	defer stream.Close()
 
-	listen, errNet := net.Listen("tcp", ":8080")
+	listen, errNet := net.Listen("tcp", *address)
 	if errNet != nil {
 		log.Fatal(errNet)
 	}
 	defer listen.Close()
 
 	// clearTerminal()
-	fmt.Println("Running Server TCP on port :8080")
+	fmt.Println("Running Server TCP on port ", *address)
 
 	for {
 		conn, err := listen.Accept()

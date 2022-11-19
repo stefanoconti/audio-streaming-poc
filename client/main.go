@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"os"
 	"time"
 
 	"github.com/gordonklaus/portaudio"
@@ -23,25 +24,33 @@ func main() {
 
 	portaudio.Initialize()
 	defer portaudio.Terminate()
+
+	conn := dialServer(*server)
+	defer conn.Close()
+
 	buffer := make([]float32, sampleRate*seconds)
 
 	stream, err := portaudio.OpenDefaultStream(0, 1, sampleRate, len(buffer), func(out []float32) {
-		readFromServer(out, buffer, *server)
+		readFromServer(out, buffer, conn)
 	})
 	must(err)
 	must(stream.Start())
 
 	// clearTerminal()
 
-	for {
-		time.Sleep(time.Millisecond)
-	}
+	/*
+		for {
+			time.Sleep(time.Millisecond)
+		}
+	*/
+	keepAlive := make(chan bool)
+	exitStatus := 0
+
+	<-keepAlive
+	os.Exit(exitStatus)
 }
 
-func readFromServer(out []float32, buffer []float32, server string) {
-	conn := dialServer(server)
-	defer conn.Close()
-
+func readFromServer(out []float32, buffer []float32, conn net.Conn) {
 	bs, _ := ioutil.ReadAll(conn)
 	bytesReader := bytes.NewReader(bs)
 	binary.Read(bytesReader, binary.BigEndian, &buffer)
