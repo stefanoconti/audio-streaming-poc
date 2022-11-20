@@ -24,9 +24,14 @@ func main() {
 
 	buffer := make([]float32, sampleRate*seconds)
 	stream, err := portaudio.OpenDefaultStream(1, 0, sampleRate, len(buffer), func(in []float32) {
-		for i := range buffer {
-			buffer[i] = in[i]
-		}
+		copy(buffer, in)
+		//fmt.Println(i)
+		/*
+			for i := range buffer {
+				buffer[i] = in[i]
+			}
+		*/
+
 	})
 	must(err)
 	must(stream.Start())
