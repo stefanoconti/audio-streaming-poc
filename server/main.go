@@ -22,17 +22,37 @@ func main() {
 	portaudio.Initialize()
 	defer portaudio.Terminate()
 
-	buffer := make([]float32, sampleRate*seconds)
-	stream, err := portaudio.OpenDefaultStream(1, 0, sampleRate, len(buffer), func(in []float32) {
-		copy(buffer, in)
-		//fmt.Println(i)
-		/*
-			for i := range buffer {
-				buffer[i] = in[i]
-			}
-		*/
+	chin := make(chan []float32, 2)
+
+	//buffer := make([]float32, sampleRate*seconds)
+
+	h, err := portaudio.DefaultHostApi()
+	must(err)
+
+	for i, d := range h.Devices {
+		fmt.Println(i, d.Name, d.MaxInputChannels, d.MaxOutputChannels)
+	}
+
+	p := portaudio.LowLatencyParameters(h.Devices[3], nil)
+	p.Input.Channels = 1
+	p.Output.Channels = 0
+	p.SampleRate = sampleRate
+
+	stream, err := portaudio.OpenStream(p, func(in []float32) {
+		buf := make([]float32, sampleRate*seconds)
+		copy(buf, in)
+		chin <- buf
 
 	})
+
+	/*
+		stream, err := portaudio.OpenDefaultStream(1, 0, sampleRate, len(buffer), func(in []float32) {
+			buf := make([]float32, sampleRate*seconds)
+			copy(buf, in)
+			chin <- buf
+		})
+	*/
+
 	must(err)
 	must(stream.Start())
 	defer stream.Close()
@@ -52,13 +72,22 @@ func main() {
 			log.Println(err)
 			continue
 		}
-		go handle(conn, buffer)
+		// go handle(conn, buffer)
+		go processOutcomingData(conn, chin)
 	}
 }
 
 func handle(con net.Conn, buffer []float32) {
 	defer con.Close()
 	binary.Write(con, binary.BigEndian, &buffer)
+}
+
+func processOutcomingData(conn net.Conn, in chan []float32) {
+	defer conn.Close()
+	for {
+		buf := <-in
+		binary.Write(conn, binary.BigEndian, &buf)
+	}
 }
 
 /*
