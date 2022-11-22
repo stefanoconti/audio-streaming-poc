@@ -46,12 +46,14 @@ func main() {
 		fmt.Println(i, d.Name, d.MaxInputChannels, d.MaxOutputChannels)
 	}
 
-	p := portaudio.LowLatencyParameters(nil, h.Devices[2])
+	p := portaudio.LowLatencyParameters(nil, h.Devices[4])
 	p.Input.Channels = 0
 	p.Output.Channels = 1
 	p.SampleRate = sampleRate
+	p.FramesPerBuffer = sampleRate * seconds
 
 	stream, err := portaudio.OpenStream(p, func(out []float32) {
+		// fmt.Println(len(out), cap(out))
 		//readFromServer2(out, buffer, conn)
 		writeAudio(chout, out)
 	})

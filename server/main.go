@@ -22,7 +22,7 @@ func main() {
 	portaudio.Initialize()
 	defer portaudio.Terminate()
 
-	chin := make(chan []float32, 2)
+	chin := make(chan []float32)
 
 	//buffer := make([]float32, sampleRate*seconds)
 
@@ -37,8 +37,10 @@ func main() {
 	p.Input.Channels = 1
 	p.Output.Channels = 0
 	p.SampleRate = sampleRate
+	p.FramesPerBuffer = sampleRate * seconds
 
 	stream, err := portaudio.OpenStream(p, func(in []float32) {
+		// fmt.Println(len(in), cap(in))
 		buf := make([]float32, sampleRate*seconds)
 		copy(buf, in)
 		chin <- buf
