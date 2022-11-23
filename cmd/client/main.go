@@ -65,6 +65,9 @@ func main() {
 	conn := dialServer(*server)
 	defer conn.Close()
 
+	go common.WriteOutcomingData(conn, channelAudioInput)
+	go common.ReadIncomingData(conn, frames, channelAudioOutput)
+
 	keepAlive := make(chan os.Signal)
 	exitStatus := 0
 	signal.Notify(keepAlive, os.Kill, os.Interrupt)
