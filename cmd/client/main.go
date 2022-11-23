@@ -49,10 +49,10 @@ func main() {
 	defer streamIn.Close()
 
 	pOut := portaudio.LowLatencyParameters(nil, h.DefaultOutputDevice)
-	pIn.Input.Channels = 0
-	pIn.Output.Channels = 1
-	pIn.SampleRate = sampleRate
-	pIn.FramesPerBuffer = frames
+	pOut.Input.Channels = 0
+	pOut.Output.Channels = 1
+	pOut.SampleRate = sampleRate
+	pOut.FramesPerBuffer = frames
 
 	streamOut, err := portaudio.OpenStream(pOut, func(out []float32) {
 		common.WriteAudioStream(out, channelAudioOutput)
